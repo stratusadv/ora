@@ -1,6 +1,6 @@
 [package]
 name = "ora"
-version = "0.1.0"
+version = "0.1.1"
 description = "Dictation into any app through the Stratus speech model"
 authors = ["Brayden Carlson"]
 edition = "2024"
