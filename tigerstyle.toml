@@ -1,0 +1,27 @@
+include = ["src-tauri/src/**/*.rs", "src-tauri/build.rs", "src/**/*.ts"]
+exclude = ["src/vite-env.d.ts"]
+line_length_max = 100
+function_lines_max = 70
+
+extend-select = [
+    "TS004",
+    "TS014",
+    "TS017",
+    "TS018",
+    "TS026",
+    "TS027",
+    "TS031",
+    "TS032",
+    "TS034",
+    "TS035",
+    "TS037",
+    "TS040",
+    "TS042",
+    "TS043",
+    "TS044",
+    "TS045",
+    "TS047",
+    "TS048",
+    "TS049",
+    "TS050",
+]
