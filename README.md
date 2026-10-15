@@ -1,5 +1,5 @@
 <p align="center">
-    <img alt="ora" src="assets/ora-stack.png" width="180">
+    <img alt="ora" src="assets/ora-stack.png" width="240">
 </p>
 
 &nbsp;
@@ -13,6 +13,10 @@
     <a href="https://github.com/stratusadv/ora/releases/latest"><img alt="version" src="https://img.shields.io/github/v/release/stratusadv/ora?style=flat-square"></a>
     <a href="https://github.com/stratusadv/ora/releases/latest"><img alt="platforms" src="https://img.shields.io/badge/platforms-windows%20%7C%20linux-blue.svg?style=flat-square"></a>
     <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square"></a>
+</p>
+
+<p align="center">
+    <img alt="The home screen, ready for the shortcut" src="assets/home.png" width="560">
 </p>
 
 ## Overview
