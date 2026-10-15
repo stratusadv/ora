@@ -102,7 +102,7 @@ impl Controller {
     fn listening_start(&mut self, app: &AppHandle) {
         debug_assert!(self.listening.is_none());
 
-        let settings = settings_current();
+        let settings = settings::settings_current();
 
         let endpoint = match endpoint_check(&settings, KeyPurpose::Transcription) {
             Ok(endpoint) => endpoint,
@@ -285,7 +285,7 @@ async fn controller_run(
 }
 
 fn cue_play_configured(cue: Cue) {
-    if settings_current().cues_enabled {
+    if settings::settings_current().cues_enabled {
         audio::cue_play(cue);
     }
 }
@@ -358,7 +358,7 @@ fn release_stops(mode: ShortcutMode, held: Duration) -> bool {
 
 async fn recording_deliver(app: &AppHandle, recording: Recording) -> AppResult<Delivery> {
     let started = Instant::now();
-    let settings = settings_current();
+    let settings = settings::settings_current();
     let endpoint = endpoint_check(&settings, KeyPurpose::Transcription)?;
     let audio_ms = recording_ms(&recording);
     let (peak_db, loudest_db) = audio::recording_levels(&recording);
@@ -418,16 +418,6 @@ fn recording_ms(recording: &Recording) -> u64 {
     debug_assert!(duration_ms * u64::from(recording.sample_rate) <= samples * 1000);
 
     duration_ms
-}
-
-fn settings_current() -> Settings {
-    let loaded = settings::root_resolve().and_then(|root| settings::settings_load(&root));
-
-    loaded.unwrap_or_else(|error| {
-        tracing::warn!("the settings could not be read, using defaults: {error}");
-
-        Settings::default()
-    })
 }
 
 const fn status_idle() -> Status {

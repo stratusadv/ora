@@ -1,6 +1,7 @@
 use crate::dictation::Phase;
 use crate::error::{AppError, AppResult};
 use crate::monitor;
+use crate::settings::{self, Theme};
 use crate::state::AppState;
 use std::time::Instant;
 use tauri::image::Image;
@@ -10,7 +11,8 @@ use tauri::utils::config::Color;
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
 pub(crate) const WINDOW_MAIN: &str = "main";
-const WINDOW_BACKGROUND: Color = Color(8, 9, 10, 255);
+const WINDOW_BACKGROUND_DARK: Color = Color(8, 9, 10, 255);
+const WINDOW_BACKGROUND_LIGHT: Color = Color(247, 247, 248, 255);
 const WINDOW_HEIGHT: f64 = 660.0;
 const WINDOW_HEIGHT_MIN: f64 = 660.0;
 const WINDOW_TITLE: &str = "ora";
@@ -141,15 +143,48 @@ pub(crate) fn window_reveal(window: &WebviewWindow) {
     }
 }
 
+pub(crate) fn window_theme_apply(window: &WebviewWindow, theme: Option<Theme>) {
+    let requested = theme.map(|theme| match theme {
+        Theme::Dark => tauri::Theme::Dark,
+        Theme::Light => tauri::Theme::Light,
+    });
+
+    // None hands the titlebar back to the desktop, so "Match my computer" keeps following it.
+    if let Err(error) = window.set_theme(requested) {
+        tracing::debug!("the settings window did not take the theme: {error}");
+    }
+
+    let effective = requested.or_else(|| window.theme().ok());
+    let background = window_background_of(effective);
+
+    debug_assert!(background == WINDOW_BACKGROUND_DARK || background == WINDOW_BACKGROUND_LIGHT);
+
+    if let Err(error) = window.set_background_color(Some(background)) {
+        tracing::debug!("the settings window did not take the background: {error}");
+    }
+}
+
+fn window_background_of(theme: Option<tauri::Theme>) -> Color {
+    if theme == Some(tauri::Theme::Light) {
+        return WINDOW_BACKGROUND_LIGHT;
+    }
+
+    WINDOW_BACKGROUND_DARK
+}
+
 fn window_main_build(app: &AppHandle) -> tauri::Result<WebviewWindow> {
-    WebviewWindowBuilder::new(app, WINDOW_MAIN, WebviewUrl::App("index.html".into()))
+    let window = WebviewWindowBuilder::new(app, WINDOW_MAIN, WebviewUrl::App("index.html".into()))
         .title(WINDOW_TITLE)
         .inner_size(WINDOW_WIDTH, WINDOW_HEIGHT)
         .min_inner_size(WINDOW_WIDTH_MIN, WINDOW_HEIGHT_MIN)
         .center()
         .visible(false)
-        .background_color(WINDOW_BACKGROUND)
-        .build()
+        .background_color(WINDOW_BACKGROUND_DARK)
+        .build()?;
+
+    window_theme_apply(&window, settings::settings_current().theme);
+
+    Ok(window)
 }
 
 fn icon_marked(base: &Image<'_>, color: [u8; 4]) -> Image<'static> {
@@ -219,6 +254,13 @@ mod tests {
         let index = ((row * image.width() + column) * 4) as usize;
 
         image.rgba()[index..index + 4].try_into().unwrap()
+    }
+
+    #[test]
+    fn only_a_light_theme_gets_the_light_background() {
+        assert_eq!(window_background_of(Some(tauri::Theme::Light)), WINDOW_BACKGROUND_LIGHT);
+        assert_eq!(window_background_of(Some(tauri::Theme::Dark)), WINDOW_BACKGROUND_DARK);
+        assert_eq!(window_background_of(None), WINDOW_BACKGROUND_DARK);
     }
 
     #[test]

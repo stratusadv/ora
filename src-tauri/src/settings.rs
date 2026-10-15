@@ -49,6 +49,13 @@ pub(crate) enum ShortcutMode {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+pub(crate) enum Theme {
+    Dark,
+    Light,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub(crate) enum Thinking {
     Low,
     Medium,
@@ -77,6 +84,7 @@ pub(crate) struct Settings {
     pub(crate) paste_keys: PasteKeys,
     pub(crate) shortcut: String,
     pub(crate) shortcut_mode: ShortcutMode,
+    pub(crate) theme: Option<Theme>,
     pub(crate) vocabulary: String,
 }
 
@@ -92,6 +100,7 @@ impl Default for Settings {
             paste_keys: PasteKeys::ControlV,
             shortcut: SHORTCUT_DEFAULT.to_owned(),
             shortcut_mode: ShortcutMode::HoldOrTap,
+            theme: None,
             vocabulary: String::new(),
         }
     }
@@ -128,6 +137,7 @@ impl Settings {
             paste_keys: self.paste_keys,
             shortcut,
             shortcut_mode: self.shortcut_mode,
+            theme: self.theme,
             vocabulary,
         };
 
@@ -214,6 +224,16 @@ pub(crate) fn root_resolve() -> AppResult<PathBuf> {
     debug_assert!(root.ends_with(APP_DATA_FOLDER));
 
     Ok(root)
+}
+
+pub(crate) fn settings_current() -> Settings {
+    let loaded = root_resolve().and_then(|root| settings_load(&root));
+
+    loaded.unwrap_or_else(|error| {
+        tracing::warn!("the settings could not be read, using defaults: {error}");
+
+        Settings::default()
+    })
 }
 
 pub(crate) fn settings_load(root: &Path) -> AppResult<Settings> {
@@ -325,6 +345,7 @@ mod tests {
             paste_keys: PasteKeys::ShiftInsert,
             shortcut: "Control+Alt+KeyD".to_owned(),
             shortcut_mode: ShortcutMode::Tap,
+            theme: Some(Theme::Light),
             vocabulary: "Stratus, ora, Quartz Lantern".to_owned(),
         }
     }
@@ -379,6 +400,20 @@ mod tests {
         assert_eq!(restored.cleanup_model, MODEL_CLEANUP_DEFAULT);
         assert_eq!(restored.paste_keys, PasteKeys::ControlV);
         assert_eq!(restored.shortcut_mode, ShortcutMode::HoldOrTap);
+        assert_eq!(restored.theme, None);
+    }
+
+    #[test]
+    fn a_theme_is_stored_as_its_lowercase_name_and_an_unknown_one_is_refused() {
+        let light = Settings { theme: Some(Theme::Light), ..Settings::default() };
+        let encoded = serde_json::to_value(&light).unwrap();
+
+        assert_eq!(encoded["theme"], "light");
+        assert_eq!(
+            serde_json::to_value(Settings::default()).unwrap()["theme"],
+            serde_json::Value::Null
+        );
+        assert!(serde_json::from_str::<Settings>(r#"{"theme":"sepia"}"#).is_err());
     }
 
     #[test]

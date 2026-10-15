@@ -228,7 +228,7 @@ async function typing_allow() {
     gap: 0.75rem;
     height: 3rem;
     border-top: 1px solid var(--color-border);
-    background: #0c0d0f;
+    background: var(--color-footer);
 }
 
 .step-art img {
@@ -314,7 +314,7 @@ async function typing_allow() {
 }
 
 .step-form :deep(.step-input:hover:not(:focus)) {
-    border-bottom-color: rgba(255, 255, 255, 0.24);
+    border-bottom-color: var(--color-underline-hover);
 }
 
 .step-form :deep(.step-input:focus) {

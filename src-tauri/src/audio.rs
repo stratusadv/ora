@@ -3,11 +3,13 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{
     BufferSize,
     FromSample,
+    I24,
     Sample,
     SampleFormat,
     SizedSample,
     StreamConfig,
     SupportedBufferSize,
+    U24,
 };
 use rubato::audioadapter_buffers::direct::InterleavedSlice;
 use rubato::{
@@ -520,9 +522,14 @@ fn stream_input_build(
         SampleFormat::F64 => stream_input_typed::<f64>(device, config, sink),
         SampleFormat::I8 => stream_input_typed::<i8>(device, config, sink),
         SampleFormat::I16 => stream_input_typed::<i16>(device, config, sink),
+        SampleFormat::I24 => stream_input_typed::<I24>(device, config, sink),
         SampleFormat::I32 => stream_input_typed::<i32>(device, config, sink),
+        SampleFormat::I64 => stream_input_typed::<i64>(device, config, sink),
         SampleFormat::U8 => stream_input_typed::<u8>(device, config, sink),
         SampleFormat::U16 => stream_input_typed::<u16>(device, config, sink),
+        SampleFormat::U24 => stream_input_typed::<U24>(device, config, sink),
+        SampleFormat::U32 => stream_input_typed::<u32>(device, config, sink),
+        SampleFormat::U64 => stream_input_typed::<u64>(device, config, sink),
         format => Err(AppError::Audio(format!(
             "the microphone delivers {format} samples, which ora does not read"
         ))),
@@ -562,9 +569,16 @@ fn stream_output_build(
     match supported.sample_format() {
         SampleFormat::F32 => stream_output_typed::<f32>(device, config, cue),
         SampleFormat::F64 => stream_output_typed::<f64>(device, config, cue),
+        SampleFormat::I8 => stream_output_typed::<i8>(device, config, cue),
         SampleFormat::I16 => stream_output_typed::<i16>(device, config, cue),
+        SampleFormat::I24 => stream_output_typed::<I24>(device, config, cue),
         SampleFormat::I32 => stream_output_typed::<i32>(device, config, cue),
+        SampleFormat::I64 => stream_output_typed::<i64>(device, config, cue),
+        SampleFormat::U8 => stream_output_typed::<u8>(device, config, cue),
         SampleFormat::U16 => stream_output_typed::<u16>(device, config, cue),
+        SampleFormat::U24 => stream_output_typed::<U24>(device, config, cue),
+        SampleFormat::U32 => stream_output_typed::<u32>(device, config, cue),
+        SampleFormat::U64 => stream_output_typed::<u64>(device, config, cue),
         format => Err(AppError::Audio(format!(
             "the speaker takes {format} samples, which ora does not write"
         ))),
@@ -714,6 +728,18 @@ mod tests {
         )
     }
 
+    fn scaled<T>(data: &[T]) -> Vec<f32>
+    where
+        T: Sample,
+        f32: FromSample<T>,
+    {
+        let buffer = Mutex::new(Vec::new());
+
+        frames_append(&buffer, data, 1, 16);
+
+        buffer.into_inner().unwrap()
+    }
+
     #[test]
     fn frames_mix_down_to_mono_and_stop_at_the_cap() {
         let buffer = Mutex::new(Vec::new());
@@ -737,6 +763,50 @@ mod tests {
         assert!((samples[0] - 1.0).abs() < 1e-3);
         assert!((samples[1] + 1.0).abs() < 1e-3);
         assert!(samples[2].abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn frames_of_every_width_and_signedness_reach_the_same_unit_range() {
+        let expected = [1.0_f32, -1.0, 0.0];
+        let i24_max = I24::new((1 << 23) - 1).unwrap();
+        let i24_min = I24::new(-(1 << 23)).unwrap();
+        let u24_max = U24::new((1 << 24) - 1).unwrap();
+        let u24_min = U24::new(0).unwrap();
+
+        let results = [
+            scaled(&[i24_max, i24_min, I24::EQUILIBRIUM]),
+            scaled(&[u24_max, u24_min, U24::EQUILIBRIUM]),
+            scaled(&[i64::MAX, i64::MIN, 0]),
+            scaled(&[u32::MAX, u32::MIN, u32::EQUILIBRIUM]),
+            scaled(&[u64::MAX, u64::MIN, u64::EQUILIBRIUM]),
+        ];
+
+        for samples in results {
+            assert_eq!(samples.len(), expected.len());
+
+            for (sample, wanted) in samples.iter().zip(expected) {
+                assert!((sample - wanted).abs() < 1e-3, "{sample} is not {wanted}");
+            }
+        }
+    }
+
+    #[test]
+    fn a_cue_written_as_24_bit_samples_reads_back_as_the_same_tone() {
+        let mut tone_float = Tone::new(Cue::Start, 48_000);
+        let mut tone_wide = Tone::new(Cue::Start, 48_000);
+        let mut float = vec![0.0_f32; 960];
+        let mut wide = vec![I24::EQUILIBRIUM; 960];
+
+        tone_fill(&mut tone_float, &mut float, 2);
+        tone_fill(&mut tone_wide, &mut wide, 2);
+
+        let step = 1.0 / f32::from(1_u16 << 15) / 256.0;
+
+        assert!(peak(&float) > 0.0);
+
+        for (written, read) in float.iter().zip(&wide) {
+            assert!((written - read.to_sample::<f32>()).abs() <= step);
+        }
     }
 
     #[test]

@@ -9,6 +9,8 @@ import { use_update } from '../composables/use_update'
 import { control_restore } from '../lib/control'
 import { error_message } from '../lib/errors'
 import { ipc } from '../lib/ipc'
+import { preference_of, theme_of } from '../lib/theme'
+import type { ThemePreference } from '../lib/theme'
 import type { Microphone, PasteKeys, ShortcutMode } from '../types'
 
 
@@ -20,6 +22,11 @@ interface ModeChoice {
 interface PasteChoice {
     label: string
     value: PasteKeys
+}
+
+interface ThemeChoice {
+    label: string
+    value: ThemePreference
 }
 
 defineProps<{
@@ -36,6 +43,12 @@ const PASTE_CHOICES: readonly PasteChoice[] = Object.freeze([
     { label: 'Ctrl + V', value: 'control_v' },
     { label: 'Ctrl + Shift + V (terminals)', value: 'control_shift_v' },
     { label: 'Shift + Insert', value: 'shift_insert' },
+])
+
+const THEME_CHOICES: readonly ThemeChoice[] = Object.freeze([
+    { label: 'Match my computer', value: 'system' },
+    { label: 'Light', value: 'light' },
+    { label: 'Dark', value: 'dark' },
 ])
 
 const { platform } = use_runtime()
@@ -155,6 +168,17 @@ function shortcut_change(accelerator: string) {
     void settings_change({ shortcut: accelerator })
 }
 
+async function theme_change(event: Event) {
+    const value = value_of(event)
+    const choice = THEME_CHOICES.find((candidate) => candidate.value === value)
+
+    if (choice === undefined) return
+
+    const saved = await settings_change({ theme: theme_of(choice.value) })
+
+    if (!saved) control_restore(event, preference_of(settings.value?.theme ?? null))
+}
+
 function update_action() {
     if (update_phase.value === 'available') {
         void update_install()
@@ -260,6 +284,29 @@ onMounted(async () => {
                 <h3>Vocabulary</h3>
                 <div class="card group">
                     <VocabularyFields />
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Appearance</h3>
+                <div class="card group">
+                    <div>
+                        <label class="label" for="theme">Theme</label>
+                        <select
+                            id="theme"
+                            class="input"
+                            :value="preference_of(settings.theme)"
+                            @change="theme_change"
+                        >
+                            <option
+                                v-for="choice in THEME_CHOICES"
+                                :key="choice.value"
+                                :value="choice.value"
+                            >
+                                {{ choice.label }}
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
 

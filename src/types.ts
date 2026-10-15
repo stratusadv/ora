@@ -10,6 +10,8 @@ export type ShortcutBackend = 'hotkey' | 'keyboard'
 
 export type ShortcutMode = 'hold' | 'hold_or_tap' | 'tap'
 
+export type Theme = 'dark' | 'light'
+
 export type Thinking = 'low' | 'medium' | 'xhigh'
 
 export interface KeySource {
@@ -54,6 +56,7 @@ export interface Settings {
     paste_keys: PasteKeys
     shortcut: string
     shortcut_mode: ShortcutMode
+    theme: Theme | null
     vocabulary: string
 }
 

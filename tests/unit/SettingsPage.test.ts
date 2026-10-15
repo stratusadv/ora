@@ -59,6 +59,28 @@ describe('SettingsPage', () => {
         expect(backend.settings.microphone).toBeNull()
     })
 
+    it('stores Light and Dark as themes and Match my computer as no theme', async () => {
+        const backend = backend_install()
+        const wrapper = await component_mount(backend, 'SettingsPage', { paste_manual: false })
+
+        expect(wrapper.findAll('#theme option').map((option) => option.text())).toEqual([
+            'Match my computer',
+            'Light',
+            'Dark',
+        ])
+        expect((wrapper.get('#theme').element as HTMLSelectElement).value).toBe('system')
+
+        await wrapper.get('#theme').setValue('light')
+        await flushPromises()
+
+        expect(backend.settings.theme).toBe('light')
+
+        await wrapper.get('#theme').setValue('system')
+        await flushPromises()
+
+        expect(backend.settings.theme).toBeNull()
+    })
+
     it('flips each switch through the backend', async () => {
         const backend = backend_install()
         const wrapper = await component_mount(backend, 'SettingsPage', { paste_manual: false })

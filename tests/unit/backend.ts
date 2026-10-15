@@ -59,6 +59,7 @@ export const SETTINGS_DEFAULT: Settings = Object.freeze({
     paste_keys: 'control_v',
     shortcut: 'Control+Shift+Space',
     shortcut_mode: 'hold_or_tap',
+    theme: null,
     vocabulary: '',
 })
 

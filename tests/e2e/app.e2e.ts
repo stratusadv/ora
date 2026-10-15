@@ -137,7 +137,10 @@ describe('ora settings', () => {
         await type(session, '#vocabulary-term', `Kubernetes, Tauri, kubernetes${KEY_ENTER}`)
         await settings_wait('vocabulary', 'Kubernetes\nTauri')
 
-        expect(await count(session, '.term')).toBe(2)
+        // The file is written before the reply reaches the window, so the chips trail it.
+        await wait_until('both terms to show as chips', async () => {
+            return (await count(session, '.term')) === 2
+        })
     })
 
     it('refuses an address that is not a web address and keeps the stored one', async () => {

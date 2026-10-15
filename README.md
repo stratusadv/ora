@@ -47,7 +47,7 @@ Each installer is on the [download page](https://stratusadv.github.io/ora/) and 
 
 The app talks to two API services behind a single address, one for transcription and one for the cleanup LLM. A build made from a checkout whose `.env` holds `ORA_API_HOST`, `ORA_API_KEY_TRANSCRIPTION`, and `ORA_API_KEY_LLM` needs no setup at all. Any other build asks once for whichever of the API address, the transcription key, and the LLM key it lacks. A value entered in Settings always wins over the built-in one, so a key can be replaced without a new build.
 
-The Settings page sits behind the gear. It also holds the microphone, the shortcut and its mode, the paste keystroke, the custom vocabulary, the audio cues, launch at startup, and the cleanup model and how long it thinks before writing.
+The Settings page sits behind the gear. It also holds the microphone, the shortcut and its mode, the paste keystroke, the custom vocabulary, the theme, the audio cues, launch at startup, and the cleanup model and how long it thinks before writing.
 
 ## Linux
 
@@ -84,7 +84,7 @@ just verify
 
 ## Release
 
-A push of a `v*` tag builds the Windows installer and the Linux packages on GitHub Actions, signs them, and publishes a release with the installers, their signatures, and the `latest.json` the updater reads. A release builds in only the API address, from the `ORA_API_HOST` repository variable, because anyone with the installer could read a key out of the binary.
+A push of a `v*` tag builds the Windows installer and the Linux packages on GitHub Actions, signs them, and publishes a release with the installers, their signatures, and the `latest.json` the updater reads. A release builds in none of the three `ORA_API_*` values, because anyone with the installer could read them out of the binary, so a released copy asks for the API address and both keys on its first run.
 
 The signing key is generated once. The private key never enters the repository, and an installed copy only ever accepts updates signed by it, so back it up.
 

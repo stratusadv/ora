@@ -172,7 +172,7 @@ async function orb_click() {
 
 .status-title {
     --sweep-base: var(--color-content);
-    --sweep-light: #eceef1;
+    --sweep-light: var(--color-sweep);
     --sweep-seconds: 4.5s;
     padding-bottom: 0.08em;
     background-image: linear-gradient(
@@ -201,13 +201,13 @@ async function orb_click() {
 
 .status-title[data-phase="listening"] {
     --sweep-base: var(--color-listening);
-    --sweep-light: #f27a7e;
+    --sweep-light: var(--color-sweep-listening);
     --sweep-seconds: 3.2s;
 }
 
 .status-title[data-phase="transcribing"] {
     --sweep-base: var(--color-transcribing);
-    --sweep-light: #a3a8fa;
+    --sweep-light: var(--color-sweep-transcribing);
     --sweep-seconds: 2.6s;
 }
 

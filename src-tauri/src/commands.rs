@@ -7,6 +7,7 @@ use crate::service::{self, KeyPurpose, ServiceStatus};
 use crate::settings::{self, Settings};
 use crate::shortcut;
 use crate::state::{self, AppState};
+use crate::tray;
 use serde::Serialize;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_autostart::ManagerExt;
@@ -122,13 +123,12 @@ pub(crate) async fn settings_get() -> AppResult<Settings> {
 pub(crate) async fn settings_update(app: AppHandle, settings: Settings) -> AppResult<Settings> {
     let normalized = settings.normalized()?;
     let root = settings::root_resolve()?;
+    let previous = settings::settings_load(&root)?;
     let backends = state::backends_get(&app).await;
 
     shortcut::accelerator_validate(&normalized.shortcut)?;
 
     if backends.shortcut.hotkey() {
-        let previous = settings::settings_load(&root)?;
-
         shortcut::hotkey_replace(&app, &previous.shortcut, &normalized.shortcut)?;
     }
 
@@ -137,6 +137,13 @@ pub(crate) async fn settings_update(app: AppHandle, settings: Settings) -> AppRe
     }
 
     settings::settings_save(&root, &normalized)?;
+
+    // Theming the window waits on the GUI thread, so only a changed theme pays for it.
+    if previous.theme != normalized.theme {
+        if let Some(window) = app.get_webview_window(tray::WINDOW_MAIN) {
+            tray::window_theme_apply(&window, normalized.theme);
+        }
+    }
 
     Ok(normalized)
 }

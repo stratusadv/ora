@@ -232,7 +232,7 @@ onMounted(async () => {
     height: 3.5rem;
     padding: 0 1.125rem 0 1.75rem;
     border-bottom: 1px solid var(--color-border);
-    background: rgba(8, 9, 10, 0.78);
+    background: var(--color-header);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     user-select: none;

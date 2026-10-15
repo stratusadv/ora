@@ -68,18 +68,19 @@ onBeforeUnmount(() => {
     height: 15rem;
     margin-bottom: 1rem;
     overflow: hidden;
-    background: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.5px) center / 16px 16px;
+    background: radial-gradient(var(--color-dot) 1px, transparent 1.5px) center / 16px 16px;
     transition: --tone 300ms ease;
-}
-
-.orb::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(90deg, var(--color-surface) 4%, transparent 38%, transparent 62%, var(--color-surface) 96%),
-        linear-gradient(180deg, var(--color-surface), transparent 25%, transparent 75%, var(--color-surface));
-    pointer-events: none;
+    /* The edges fade by masking the content rather than painting the surface over it, so the
+       8-bit steps of the two crossed gradients land on the sparse dots and stay invisible
+       instead of drawing concentric rectangles across a light surface. */
+    -webkit-mask:
+        linear-gradient(90deg, transparent 4%, #000 38%, #000 62%, transparent 96%),
+        linear-gradient(180deg, transparent, #000 25%, #000 75%, transparent);
+    -webkit-mask-composite: source-in;
+    mask:
+        linear-gradient(90deg, transparent 4%, #000 38%, #000 62%, transparent 96%),
+        linear-gradient(180deg, transparent, #000 25%, #000 75%, transparent);
+    mask-composite: intersect;
 }
 
 .orb-layer {
