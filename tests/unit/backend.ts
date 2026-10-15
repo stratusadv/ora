@@ -51,7 +51,7 @@ export const PLATFORM_X11: Platform = Object.freeze({
 
 export const SETTINGS_DEFAULT: Settings = Object.freeze({
     api_host: null,
-    cleanup_enabled: false,
+    cleanup_enabled: true,
     cleanup_model: 'stratus.turbo',
     cleanup_thinking: null,
     cues_enabled: true,

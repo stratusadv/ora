@@ -65,12 +65,12 @@ describe('SettingsPage', () => {
         const [cues, cleanup, autostart] = wrapper.findAll('input[role="switch"]')
 
         await cues?.setValue(false)
-        await cleanup?.setValue(true)
+        await cleanup?.setValue(false)
         await autostart?.setValue(true)
         await flushPromises()
 
         expect(backend.settings.cues_enabled).toBe(false)
-        expect(backend.settings.cleanup_enabled).toBe(true)
+        expect(backend.settings.cleanup_enabled).toBe(false)
         expect(backend.autostart).toBe(true)
     })
 

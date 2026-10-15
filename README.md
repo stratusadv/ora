@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-    <img alt="The home screen, ready for the shortcut" src="assets/home.png" width="560">
+    <img alt="The home screen, ready for the shortcut" src="assets/home.png" width="450">
 </p>
 
 ## Overview
@@ -29,7 +29,7 @@ A dictation runs in four steps, and the window shows whether ora is idle, listen
 
 - **Recording**: The default shortcut is `Ctrl` + `Shift` + `Space`, and a short cue plays as the microphone starts and stops. The shortcut mode decides how the keys behave. *Hold or toggle* treats a press shorter than 400 ms as a tap that starts and stops a recording and a longer one as push to talk, while *Push to talk* and *Toggle* each keep to one of the two.
 - **Transcription**: The recording goes to the transcription API with the custom vocabulary as spelling hints. A recording with no speech in it is dropped with a notice rather than pasted.
-- **Cleanup**: The *Spelling & grammar cleanup* switch, off by default, sends the transcript to the LLM to add punctuation and capitalization and to drop filler sounds such as um and uh. The model is told to keep every other word as it was, and a reply whose word count strays too far from the transcript is thrown away. The raw transcript is pasted with a notice instead, and a failed request falls back the same way.
+- **Cleanup**: The *Spelling & grammar cleanup* switch, on by default, sends the transcript to the LLM to add punctuation and capitalization and to drop filler sounds such as um and uh. The model is told to keep every other word as it was, and a reply whose word count strays too far from the transcript is thrown away. The raw transcript is pasted with a notice instead, and a failed request falls back the same way.
 - **Paste**: The text goes onto the clipboard and ora presses the paste keys in the app that has focus. The text stays on the clipboard afterwards, so a paste that lands in the wrong window is one `Ctrl` + `V` away. A desktop that blocks simulated input leaves the text there with a notice to paste it by hand.
 
 ## Install

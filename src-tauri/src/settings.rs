@@ -84,7 +84,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             api_host: None,
-            cleanup_enabled: false,
+            cleanup_enabled: true,
             cleanup_model: MODEL_CLEANUP_DEFAULT.to_owned(),
             cleanup_thinking: None,
             cues_enabled: true,
@@ -317,7 +317,7 @@ mod tests {
     fn settings_custom() -> Settings {
         Settings {
             api_host: Some("https://api.example.test".to_owned()),
-            cleanup_enabled: true,
+            cleanup_enabled: false,
             cleanup_model: "stratus.thinking".to_owned(),
             cleanup_thinking: Some(Thinking::Medium),
             cues_enabled: false,
@@ -327,6 +327,16 @@ mod tests {
             shortcut_mode: ShortcutMode::Tap,
             vocabulary: "Stratus, ora, Quartz Lantern".to_owned(),
         }
+    }
+
+    #[test]
+    fn a_fresh_install_starts_with_cues_and_cleanup_on() {
+        let settings = Settings::default();
+        let directory = DirectoryScoped::new("settings-fresh");
+
+        assert!(settings.cues_enabled);
+        assert!(settings.cleanup_enabled);
+        assert_eq!(settings_load(directory.path()).unwrap(), settings);
     }
 
     #[test]
